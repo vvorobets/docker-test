@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Socket.io chat</title>
+		<style>
+		body {
+			font-family: Arial, Helvetica, sans-serif;
+		}
+		form {
+			border: 3px solid #f1f1f1;
+		}
+		input[type=text] {
+			padding: 12px 20px;
+			margin: 8px 0;
+			display: inline-block;
+			width: 100%;
+			border: 1px solid #ccc;
+			box-sizing: border-box;
+		}
+		button {
+			background-color: #4CAF50;
+			color: black;
+			padding: 12px 20px;
+			margin: 8px 0;
+			border: none;
+			cursor: pointer;
+			width: 100%;
+		}
+		button:hover {
+			opacity: 0.8;
+		}
+		h3 {
+			background-color: #333333;
+			color: white;
+			padding: 12px 20px;
+			margin: 0;
+		}
+		#chat h3 {
+			grid-area: header;
+		}
+		#dialog {
+			grid-area: main;
+			padding: 10px;
+		}
+		#dialog li {
+			list-style-type: none;
+			border-radius: 5px;
+			background-color: white;
+			color: black;
+			margin: 10px 5px;
+			padding: 5px 5px;
+		}
+		#dialog li.left-aligned {
+			text-align: left;
+		}
+		#dialog li.right-aligned {
+			text-align: right;
+			color: #FFF;
+			background-color: #77F;
+		}
+		#dialog li.left-aligned small {
+			color:#AAA;
+		}
+		#dialog li.right-aligned small {
+			color:#CCC;
+		}
+		#sendMessage {
+			grid-area: send;
+			padding: 12px 20px;
+		}
+		#text {
+			padding: 12px 20px;
+			display: inline-block;
+			width: 80%;
+			border: 1px solid #ccc;
+			box-sizing: border-box;
+		}
+		#textSubmit {
+			background-color: #4CAF50;
+			color: white;
+			font-weight: bold;
+			padding: 12px 0;
+			border: 1px solid #ccc;
+			cursor: pointer;
+			width: 18%;
+		}
+		#chat {
+			width: 100%;
+			display: grid;
+			grid-template-columns: auto;
+			grid-template-rows: auto;
+			grid-template-areas: 
+				"header"
+				"main"
+				"send";
+			grid-gap: 5px;
+			background-color: #AAAAAA;
+		}
+		</style>
+	</head>
+	<body>
+		<div id="chat">
+			<h3>Chat with Boto</h3>
+			<ul id="dialog"></ul>
+			<form id="sendMessage">
+				<input type="text" placeholder="Enter Message" id="text" required>
+				<input type="submit" id="textSubmit" value="Send">
+			</form>
+		</div>
+				<script src="socket.io/socket.io.js"></script>
+		<!-- <script type="text/javascript" src="script.js"></script>  -->
+		<script>
+(function(){
+	const thisUserName = "User";
+
+	const chat = document.getElementById('chat');
+	const dialog = document.getElementById('dialog');
+	const text = document.getElementById('text');
+	const textSubmit = document.getElementById('textSubmit');
+
+	const socket = io.connect();
+
+
+	textSubmit.addEventListener('click', function(e) {
+		e.preventDefault();
+		let time = new Date();
+		const data = {
+			text: text.value,
+			time: time.toUTCString(),
+			author: thisUserName
+		};
+		text.value = '';
+		if(data.text.length > 0) {
+			socket.emit('chat message', data);
+		}
+	});
+
+	socket.on('chat message', function(msg) {
+		dialog.innerHTML = '';
+		let side = "left-aligned";
+		let i = 0;
+		msg.map((item) => {
+			const el = document.createElement('li');
+			side = item.author === thisUserName ? 'right-aligned' : 'left-aligned';
+			el.setAttribute('class', side);
+			el.innerHTML = '<span><small><i>' + item.time + '</i></small></span><br><p>' + 
+				item.text + '</p>';
+			dialog.appendChild(el);
+		});
+	});
+})();
+		</script>
+	</body>
+</html>
